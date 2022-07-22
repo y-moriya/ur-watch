@@ -1,0 +1,5 @@
+{
+  "token": "your_discord_token",
+  "riversideUrl": "target_url",
+  "channelId": "target_channel_id"
+}
