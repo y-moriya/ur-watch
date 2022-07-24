@@ -11,7 +11,6 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
-	console.log('Ready!');
   logger.info('Ready!');
   const channel = await client.channels.fetch(channelId);
   cron.schedule(schedule, async () => {
