@@ -1,0 +1,11 @@
+
+{
+  "name": "ur-watch",
+  "script": "index.js",
+  "interpreter": "/run/user/1002/fnm_multishells/22049_1658527408037/bin/node",
+  "watch": ["./"],
+  "ignore_watch" : ["node_modules", "log", "\\.git"],
+  "watch_options": {
+    "followSymlinks": false
+  }
+}
