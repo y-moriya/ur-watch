@@ -1,8 +1,7 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
-const { token, riversideUrl, channelId, schedule } = require('./config.json');
+const { token, urUrl, apiUrl, channelId, schedule } = require('./config.json');
 const fetch = require('node-fetch');
-const cheerio = require('cheerio');
 const cron = require('node-cron');
 const { logger } = require('./logger.js');
 
@@ -11,18 +10,26 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
-	console.log('Ready!');
   logger.info('Ready!');
   const channel = await client.channels.fetch(channelId);
   cron.schedule(schedule, async () => {
-    const response = await fetch(riversideUrl);
-    const body = await response.text();
-    const $ = cheerio.load(body);
-    // 空室がない場合は dn クラスがある
-    const hasEmptyRoom = !$('.js-no-room-show').attr('class').includes('dn');
-    if (hasEmptyRoom) {
-      channel.send(`空室情報が見つかりました: ${riversideUrl}`);
-      logger.info(`空室情報が見つかりました: ${riversideUrl}`);
+    const params = new URLSearchParams();
+    params.append('shisya', '80');
+    params.append('danchi', '284');
+    params.append('shikibetu', '0');
+    params.append('pageIndex', '0');
+    params.append('orderByField', '0');
+    params.append('orderBySort', '0');
+    const opt = { method: 'POST', body: params };
+    const response = await fetch(apiUrl, opt);
+    const json = await response.text();
+    const rooms = JSON.parse(json);
+    if (rooms && rooms.length > 0) {
+      for (const r of rooms) {
+        const mes = `${r.name} ${r.madori}\n${urUrl+r.roomDetailLink}`;
+        logger.info(mes);
+        channel.send(mes);
+      }
     } else {
       logger.info('空室情報はありませんでした。')
     }

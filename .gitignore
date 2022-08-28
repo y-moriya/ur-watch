@@ -133,3 +133,4 @@ dist
 .pnp.*
 
 config.json
+log/*
