@@ -1,40 +1,36 @@
 // Require the necessary discord.js classes
-const { Client, Intents } = require('discord.js');
-const { token, urUrl, apiUrl, channelId, schedule } = require('./config.json');
-const fetch = require('node-fetch');
-const cron = require('node-cron');
-const { logger } = require('./logger.js');
+const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, Intents } = require('discord.js');
+const { token } = require('./config.json');
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], partials: ['MESSAGE', 'USER'] });
+client.commands = new Collection();
 
-// When the client is ready, run this code (only once)
-client.once('ready', async () => {
-  logger.info('Ready!');
-  const channel = await client.channels.fetch(channelId);
-  cron.schedule(schedule, async () => {
-    const params = new URLSearchParams();
-    params.append('shisya', '80');
-    params.append('danchi', '284');
-    params.append('shikibetu', '0');
-    params.append('pageIndex', '0');
-    params.append('orderByField', '0');
-    params.append('orderBySort', '0');
-    const opt = { method: 'POST', body: params };
-    const response = await fetch(apiUrl, opt);
-    const json = await response.text();
-    const rooms = JSON.parse(json);
-    if (rooms && rooms.length > 0) {
-      for (const r of rooms) {
-        const mes = `${r.name} ${r.madori}\n${urUrl+r.roomDetailLink}`;
-        logger.info(mes);
-        channel.send(mes);
-      }
-    } else {
-      logger.info('空室情報はありませんでした。')
-    }
-  });
-});
+// load commands
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+	client.commands.set(command.data.name, command);
+}
+
+// load events
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const event = require(filePath);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+}
 
 // Login to Discord with your client's token
 client.login(token);

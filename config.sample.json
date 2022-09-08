@@ -1,6 +1,7 @@
 {
-  "token": "your_discord_token",
-  "riversideUrl": "target_url",
-  "channelId": "target_channel_id",
-  "schedule": "0 3 * * *"
+  "token": "YOUR_DISCORD_TOKEN",
+  "channelId": "YOUR_CHANNEL_ID",
+  "schedule": "0 3 * * *",
+  "apiUrl": "https://chintai.sumai.ur-net.go.jp/chintai/api/bukken/detail/detail_bukken_room/",
+  "urUrl": "https://www.ur-net.go.jp/"
 }
