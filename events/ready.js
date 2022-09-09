@@ -1,6 +1,7 @@
 const { logger } = require('../logger');
 const { channelId, schedule } = require('../config.json');
 const cron = require('node-cron');
+const { getRooms, createRoom } = require('../lib/room');
 
 module.exports = {
 	name: 'ready',
@@ -19,9 +20,17 @@ module.exports = {
       const response = await fetch(apiUrl, opt);
       const json = await response.text();
       const rooms = JSON.parse(json);
+      const dbRooms = await getRooms();
       if (rooms && rooms.length > 0) {
-        for (const r of rooms) {
-          const mes = `${r.name} ${r.madori}\n${urUrl+r.roomDetailLink}`;
+        for (const room of rooms) {
+          const existRoom = dbRooms.find((r) => r.id === room.id);
+          if (existRoom && !existRoom.watch) {
+            logger.info(`${existRoom.id} はウォッチ対象外のためスキップします。`);
+            continue;
+          } else {
+            await createRoom(room.id);
+          }
+          const mes = `${room.name} ${room.madori}\n${urUrl+room.roomDetailLink}`;
           logger.info(mes);
           const channel = await client.channels.fetch(channelId);
           channel.send(mes);
